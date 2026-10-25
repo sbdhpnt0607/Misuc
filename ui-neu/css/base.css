@@ -1,0 +1,162 @@
+/* ===========================================================================
+   Misuc Neu — base: reset, app shell grid, scrollbars, typography helpers
+   =========================================================================== */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow: hidden;
+  transition: background var(--t-med), color var(--t-med);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--accent-soft); color: var(--text-strong); }
+
+button, input, select { font-family: inherit; font-size: inherit; color: inherit; }
+button { background: none; border: none; cursor: pointer; }
+
+/* ---- scrollbars: soft inset channels ---- */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: var(--sh-dark);
+  border-radius: var(--r-pill);
+  border: 2px solid var(--bg);
+}
+*::-webkit-scrollbar-thumb:hover { background: var(--text-faint); }
+* { scrollbar-width: thin; scrollbar-color: var(--sh-dark) transparent; }
+
+/* ================================ APP SHELL ============================== */
+#app {
+  display: grid;
+  height: 100vh;
+  grid-template-columns: 84px 1fr 300px;
+  grid-template-rows: 72px 1fr 40px;
+  grid-template-areas:
+    "header header header"
+    "rail   main   inspector"
+    "dock   dock   dock";
+  gap: 14px;
+  padding: 14px;
+}
+#app.inspector-hidden { grid-template-columns: 84px 1fr 0; }
+#app.inspector-hidden #inspector { display: none; }
+
+#header    { grid-area: header; }
+#rail      { grid-area: rail; }
+#main      { grid-area: main; min-width: 0; }
+#inspector { grid-area: inspector; min-width: 0; }
+#dock      { grid-area: dock; }
+
+/* ============================== TYPO HELPERS ============================= */
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  user-select: none;
+}
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.dim { color: var(--text-dim); }
+.faint { color: var(--text-faint); }
+.strong { color: var(--text-strong); font-weight: 600; }
+
+/* ================================ VIEWS ================================== */
+#main { position: relative; }
+
+.view {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+.view.active { display: flex; }
+
+/* A neumorphic panel wrapping each view's content */
+.view-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--neu-raised-md);
+  padding: 14px;
+  gap: 12px;
+}
+
+.view-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.view-toolbar .spacer { flex: 1; }
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  box-shadow: var(--neu-inset-sm);
+}
+
+/* Well: inset content region (rack grid, canvases…) */
+.well {
+  flex: 1;
+  min-height: 0;
+  background: var(--bg-deep);
+  border-radius: var(--r-md);
+  box-shadow: var(--neu-inset-md);
+  overflow: auto;
+  position: relative;
+}
+
+/* ================================ TOASTS ================================= */
+#toast-host {
+  position: fixed;
+  bottom: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  background: var(--surface-hi);
+  color: var(--text-strong);
+  padding: 10px 18px;
+  border-radius: var(--r-pill);
+  box-shadow: var(--neu-raised-lg);
+  font-weight: 500;
+  animation: toast-in var(--t-med) both;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 70vw;
+}
+.toast .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex: none; }
+.toast.ok .dot { background: var(--ok); }
+.toast.warn .dot { background: var(--warn); }
+.toast.out { animation: toast-out var(--t-med) both; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(8px) scale(.97); } }
+
+/* ============================== RESPONSIVE =============================== */
+@media (max-width: 1100px) {
+  #app { grid-template-columns: 84px 1fr 0; }
+  #inspector { display: none; }
+}

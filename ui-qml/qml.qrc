@@ -1,0 +1,36 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>qml/qmldir</file>
+        <file>qml/SongModel.qml</file>
+        <file>qml/Main.qml</file>
+        <file>qml/HeaderBar.qml</file>
+        <file>qml/WorkspaceRail.qml</file>
+        <file>qml/Inspector.qml</file>
+        <file>qml/StatusDock.qml</file>
+        <file>qml/ToastHost.qml</file>
+
+        <file>qml/theme/qmldir</file>
+        <file>qml/theme/Theme.qml</file>
+
+        <file>qml/components/qmldir</file>
+        <file>qml/components/NeuSurface.qml</file>
+        <file>qml/components/NeuButton.qml</file>
+        <file>qml/components/NeuIconButton.qml</file>
+        <file>qml/components/NeuSegmented.qml</file>
+        <file>qml/components/NeuLed.qml</file>
+        <file>qml/components/NeuKnob.qml</file>
+        <file>qml/components/NeuFader.qml</file>
+        <file>qml/components/NeuMeter.qml</file>
+        <file>qml/components/NeuStepCell.qml</file>
+        <file>qml/components/NeuField.qml</file>
+        <file>qml/components/TransportBar.qml</file>
+
+        <file>qml/views/ChannelRackView.qml</file>
+        <file>qml/views/PianoRollView.qml</file>
+        <file>qml/views/PlaylistView.qml</file>
+        <file>qml/views/MixerView.qml</file>
+        <file>qml/views/BrowserView.qml</file>
+        <file>qml/views/SettingsView.qml</file>
+    </qresource>
+</RCC>

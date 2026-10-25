@@ -1,0 +1,2 @@
+module Misuc
+singleton SongModel 1.0 SongModel.qml

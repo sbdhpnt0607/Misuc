@@ -20,3 +20,7 @@ PHASE3_WORKSPACE_SPEC.txt
 # Stray packaging artifacts
 b_band.png
 t_band.png
+
+# Web UI dev/test dependencies (jsdom boot test)
+node_modules/
+package-lock.json

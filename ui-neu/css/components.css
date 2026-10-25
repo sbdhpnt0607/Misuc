@@ -1,0 +1,348 @@
+/* ===========================================================================
+   Misuc Neu — component library
+   Buttons, toggles, segmented controls, knobs, faders, meters, panels,
+   inputs, chips. Everything derives depth from paired soft shadows only.
+   =========================================================================== */
+
+/* ================================ PANELS ================================= */
+.panel {
+  background: var(--surface);
+  border-radius: var(--r-lg);
+  box-shadow: var(--neu-raised-md);
+  padding: 14px;
+}
+.panel.flush { padding: 0; overflow: hidden; }
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.panel-title .label { flex: 1; }
+
+/* ================================ BUTTONS ================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  box-shadow: var(--neu-raised-sm);
+  color: var(--text);
+  font-weight: 600;
+  font-size: 12px;
+  transition: box-shadow var(--t-fast), color var(--t-fast), transform var(--t-fast);
+  user-select: none;
+  white-space: nowrap;
+}
+.btn:hover { color: var(--text-strong); }
+.btn:active, .btn.pressed {
+  box-shadow: var(--neu-inset-sm);
+  transform: translateY(0.5px);
+}
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.btn.accent {
+  background: linear-gradient(145deg, var(--accent), var(--accent-deep));
+  color: var(--accent-ink);
+  box-shadow: var(--neu-raised-sm), 0 0 14px var(--accent-soft);
+}
+.btn.accent:active { box-shadow: inset 2px 2px 5px rgba(0,0,0,.25); }
+
+.btn.danger.on {
+  background: linear-gradient(145deg, var(--danger-dk), #b03a3a);
+  color: #fff;
+  box-shadow: var(--neu-raised-sm), 0 0 14px rgba(255, 92, 92, .35);
+}
+.btn.ok.on {
+  background: linear-gradient(145deg, var(--ok-dk), var(--ok));
+  color: #0c2216;
+  box-shadow: var(--neu-raised-sm), 0 0 14px rgba(74, 222, 128, .3);
+}
+
+.btn-icon {
+  width: 36px; height: 36px;
+  padding: 0;
+  border-radius: var(--r-sm);
+  font-size: 15px;
+}
+.btn-icon.round { border-radius: 50%; }
+.btn-icon.sm { width: 28px; height: 28px; font-size: 12px; border-radius: 8px; }
+
+.btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* Toggles: on = pressed-in + accent glow */
+.btn.toggle.on {
+  box-shadow: var(--neu-inset-sm);
+  color: var(--accent);
+  text-shadow: 0 0 10px var(--accent-soft);
+}
+.btn.toggle.on svg { filter: drop-shadow(0 0 4px var(--accent-glow)); }
+
+/* ============================== SEGMENTED ================================ */
+.segmented {
+  display: inline-flex;
+  padding: 4px;
+  background: var(--surface);
+  border-radius: var(--r-pill);
+  box-shadow: var(--neu-inset-sm);
+  gap: 2px;
+}
+.segmented button {
+  padding: 5px 14px;
+  border-radius: var(--r-pill);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .06em;
+  color: var(--text-dim);
+  transition: all var(--t-fast);
+}
+.segmented button.on {
+  background: linear-gradient(145deg, var(--accent), var(--accent-deep));
+  color: var(--accent-ink);
+  box-shadow: 0 2px 8px var(--accent-soft);
+}
+
+/* ================================ CHIPS ================================== */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  box-shadow: var(--neu-inset-sm);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.chip .swatch { width: 9px; height: 9px; border-radius: 50%; }
+
+/* ================================ INPUTS ================================= */
+.field {
+  background: var(--bg-deep);
+  border: none;
+  border-radius: var(--r-sm);
+  box-shadow: var(--neu-inset-sm);
+  padding: 8px 12px;
+  color: var(--text-strong);
+  font-size: 12px;
+  min-width: 0;
+}
+.field:focus { outline: 2px solid var(--accent-soft); }
+.field::placeholder { color: var(--text-faint); }
+
+select.field {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
+                    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 55%, calc(100% - 10px) 55%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 28px;
+}
+
+/* Number stepper (BPM etc.) */
+.stepper {
+  display: inline-flex;
+  align-items: stretch;
+  border-radius: var(--r-sm);
+  box-shadow: var(--neu-inset-sm);
+  background: var(--bg-deep);
+  overflow: hidden;
+}
+.stepper button {
+  width: 26px;
+  color: var(--text-dim);
+  font-weight: 700;
+  transition: color var(--t-fast);
+}
+.stepper button:hover { color: var(--accent); }
+.stepper input {
+  width: 52px;
+  text-align: center;
+  background: none;
+  border: none;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text-strong);
+}
+.stepper input:focus { outline: none; }
+
+/* ============================ LED / PILL LIGHT =========================== */
+.led {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--led-off);
+  box-shadow: var(--neu-inset-sm);
+  flex: none;
+}
+.led.on {
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent-glow), inset 0 0 3px rgba(255,255,255,.5);
+}
+.led.ok.on { background: var(--ok-dk); box-shadow: 0 0 8px rgba(74,222,128,.6); }
+.led.danger.on { background: var(--danger-dk); box-shadow: 0 0 8px rgba(255,92,92,.6); }
+
+/* ================================ KNOBS ================================== */
+.knob {
+  position: relative;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--surface-hi), var(--surface));
+  box-shadow: var(--neu-raised-sm);
+  cursor: ns-resize;
+  touch-action: none;
+  flex: none;
+  user-select: none;
+}
+.knob::after { /* pointer */
+  content: "";
+  position: absolute;
+  left: 50%; top: 4px;
+  width: 3px; height: 32%;
+  border-radius: 2px;
+  background: var(--accent);
+  transform-origin: 50% calc(50% * 38 / 14);
+  transform: translateX(-50%) rotate(var(--knob-angle, -135deg));
+  box-shadow: 0 0 6px var(--accent-soft);
+  transition: transform 40ms linear;
+}
+.knob.sm { width: 28px; height: 28px; }
+.knob.sm::after { height: 30%; top: 3.5px; width: 2.5px; transform-origin: 50% calc(50% * 28 / 10.5); }
+.knob .knob-val {
+  position: absolute;
+  inset: auto 0 -16px 0;
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  pointer-events: none;
+}
+
+/* =============================== FADERS ================================== */
+.fader {
+  position: relative;
+  width: 40px;
+  flex: 1;
+  min-height: 90px;
+  touch-action: none;
+  cursor: ns-resize;
+  user-select: none;
+}
+.fader .track {
+  position: absolute;
+  left: 50%; top: 6px; bottom: 6px;
+  width: 8px;
+  transform: translateX(-50%);
+  border-radius: var(--r-pill);
+  background: var(--bg-deep);
+  box-shadow: var(--neu-inset-sm);
+}
+.fader .fill {
+  position: absolute;
+  left: 50%; bottom: 6px;
+  width: 8px;
+  transform: translateX(-50%);
+  border-radius: var(--r-pill);
+  background: linear-gradient(0deg, var(--accent-deep), var(--accent));
+  box-shadow: 0 0 8px var(--accent-soft);
+  height: var(--fader-fill, 50%);
+}
+.fader .cap {
+  position: absolute;
+  left: 50%;
+  width: 30px; height: 16px;
+  transform: translate(-50%, 50%);
+  bottom: calc(6px + var(--fader-fill, 50%) * 0.93);
+  border-radius: 5px;
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface));
+  box-shadow: var(--neu-raised-sm);
+}
+.fader .cap::after {
+  content: "";
+  position: absolute;
+  left: 5px; right: 5px; top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  background: var(--accent);
+}
+
+/* ================================ METERS ================================= */
+.meter {
+  width: 8px;
+  border-radius: var(--r-pill);
+  background: var(--bg-deep);
+  box-shadow: var(--neu-inset-sm);
+  overflow: hidden;
+  position: relative;
+}
+.meter .meter-fill {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 0%;
+  border-radius: var(--r-pill);
+  background: linear-gradient(0deg, var(--ok) 0%, var(--ok) 60%, var(--warn) 80%, var(--danger-dk) 100%);
+  background-size: 100% 400%;
+  background-position: bottom;
+  transition: height 60ms linear;
+}
+.meter.horizontal { height: 8px; width: auto; }
+.meter.horizontal .meter-fill {
+  top: 0; bottom: 0; left: 0;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--ok) 0%, var(--ok) 60%, var(--warn) 82%, var(--danger-dk) 100%);
+  background-size: 400% 100%;
+  transition: width 60ms linear;
+}
+
+/* ============================== STEP CELLS =============================== */
+.step-cell {
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 22px;
+  border-radius: var(--r-xs);
+  background: var(--step-off);
+  box-shadow: var(--neu-inset-sm);
+  transition: box-shadow var(--t-fast), background var(--t-fast);
+}
+.step-cell.beat { background: color-mix(in srgb, var(--step-off) 70%, var(--sh-light)); }
+.step-cell.on {
+  background: linear-gradient(145deg, var(--accent), var(--accent-deep));
+  box-shadow: var(--neu-raised-sm), 0 0 10px var(--accent-soft);
+}
+.step-cell.playing {
+  box-shadow: var(--neu-inset-sm), 0 0 0 2px var(--accent-glow);
+}
+.step-cell.on.playing {
+  box-shadow: var(--neu-raised-sm), 0 0 14px var(--accent-glow);
+}
+.step-cell:hover { box-shadow: var(--neu-inset-sm), 0 0 0 2px var(--accent-soft); }
+
+/* =============================== TOOLTIPS ================================ */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text-strong);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  padding: 5px 10px;
+  border-radius: var(--r-xs);
+  white-space: pre;
+  z-index: 500;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+[data-tip].tip-left:hover::after { left: calc(100% + 8px); top: 50%; transform: translateY(-50%); }

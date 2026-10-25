@@ -1,0 +1,119 @@
+/* ===========================================================================
+   Misuc Neu — design tokens
+   Neumorphic surfaces: the background IS the surface; depth comes from paired
+   light/dark shadows, never borders. Two palettes (light/dark) x accent set
+   (mirrors the ThemeEngine presets of the Qt app: violet / cyan / emerald /
+   amber / crimson).
+   =========================================================================== */
+
+:root {
+  /* ---- geometry ---- */
+  --r-xs: 6px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 26px;
+  --r-pill: 999px;
+
+  /* ---- shadow distances ---- */
+  --d1: 3px;   /* small controls */
+  --d2: 6px;   /* buttons, panels */
+  --d3: 10px;  /* floating panels */
+  --blur1: 6px;
+  --blur2: 12px;
+  --blur3: 22px;
+
+  /* ---- motion ---- */
+  --t-fast: 120ms cubic-bezier(.4, 0, .2, 1);
+  --t-med: 220ms cubic-bezier(.4, 0, .2, 1);
+
+  /* ---- type ---- */
+  --font: "Inter", "Segoe UI", system-ui, -apple-system, "Roboto", "Ubuntu", sans-serif;
+  --mono: "JetBrains Mono", "Cascadia Code", "SF Mono", ui-monospace, "Roboto Mono", monospace;
+
+  /* ---- semantic accents (state colors, theme-independent) ---- */
+  --ok: #2fae66;
+  --ok-dk: #4ade80;
+  --warn: #e6a23c;
+  --danger: #e05252;
+  --danger-dk: #ff5c5c;
+}
+
+/* ============================= LIGHT NEUMORPHISM ========================= */
+:root, html[data-theme="light"] {
+  --bg:          #e7ebf2;
+  --bg-deep:     #dfe4ec;
+  --surface:     #e7ebf2;
+  --surface-hi:  #eef1f6;
+  --sh-dark:     #bcc5d3;
+  --sh-light:    #ffffff;
+
+  --text:        #39414f;
+  --text-strong: #232a36;
+  --text-dim:    #7c8798;
+  --text-faint:  #a3adbd;
+
+  --grid-line:   rgba(57, 65, 79, .09);
+  --grid-line-2: rgba(57, 65, 79, .18);
+  --lane-alt:    rgba(57, 65, 79, .035);
+
+  --step-off:    #dde2ea;
+  --led-off:     #cfd6e0;
+
+  color-scheme: light;
+}
+
+/* ============================== DARK NEUMORPHISM ========================= */
+html[data-theme="dark"] {
+  --bg:          #1c2027;
+  --bg-deep:     #171a20;
+  --surface:     #1c2027;
+  --surface-hi:  #21262e;
+  --sh-dark:     #12141a;
+  --sh-light:    #282d37;
+
+  --text:        #dfe3ea;
+  --text-strong: #f4f6f9;
+  --text-dim:    #949dad;
+  --text-faint:  #69707e;
+
+  --grid-line:   rgba(223, 227, 234, .06);
+  --grid-line-2: rgba(223, 227, 234, .13);
+  --lane-alt:    rgba(223, 227, 234, .025);
+
+  --step-off:    #232833;
+  --led-off:     #333a46;
+
+  color-scheme: dark;
+}
+
+/* ================================ ACCENTS ================================ */
+html[data-accent="violet"]  { --accent: #8f7bfa; --accent-deep: #6c5ce7; --accent-soft: rgba(143,123,250,.30); }
+html[data-accent="cyan"]    { --accent: #22d3ee; --accent-deep: #0e9fbb; --accent-soft: rgba(34,211,238,.30); }
+html[data-accent="emerald"] { --accent: #34d399; --accent-deep: #1ba876; --accent-soft: rgba(52,211,153,.30); }
+html[data-accent="amber"]   { --accent: #ffb454; --accent-deep: #d98a1f; --accent-soft: rgba(255,180,84,.30); }
+html[data-accent="crimson"] { --accent: #ff5470; --accent-deep: #d83552; --accent-soft: rgba(255,84,112,.30); }
+
+:root {
+  --accent-ink: #ffffff;      /* text on accent fills */
+  --accent-glow: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+/* Convenience shadow recipes (composed from the palette above) */
+:root {
+  --neu-raised-sm:
+    var(--d1) var(--d1) var(--blur1) var(--sh-dark),
+    calc(-1 * var(--d1)) calc(-1 * var(--d1)) var(--blur1) var(--sh-light);
+  --neu-raised-md:
+    var(--d2) var(--d2) var(--blur2) var(--sh-dark),
+    calc(-1 * var(--d2)) calc(-1 * var(--d2)) var(--blur2) var(--sh-light);
+  --neu-raised-lg:
+    var(--d3) var(--d3) var(--blur3) var(--sh-dark),
+    calc(-1 * var(--d3)) calc(-1 * var(--d3)) var(--blur3) var(--sh-light);
+  --neu-inset-sm:
+    inset var(--d1) var(--d1) var(--blur1) var(--sh-dark),
+    inset calc(-1 * var(--d1)) calc(-1 * var(--d1)) var(--blur1) var(--sh-light);
+  --neu-inset-md:
+    inset var(--d2) var(--d2) var(--blur2) var(--sh-dark),
+    inset calc(-1 * var(--d2)) calc(-1 * var(--d2)) var(--blur2) var(--sh-light);
+}
