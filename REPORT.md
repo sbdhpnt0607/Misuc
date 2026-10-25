@@ -154,7 +154,7 @@ failure path and the interface ID change.
   alive after 20 s, `Engine running on WASAPI`, 0 xruns (E12)
 - Negative test: **pass** — the fixed build with the IID re-broken stayed alive for
   20 s and displayed `Start failed:`, with no abort (E7c)
-- Pull request: `<pending>`
+- Pull request: [#1](https://github.com/SPOOKEYfr/Misuc/pull/1) (E13)
 
 ## Follow-ups (not required for this fix)
 
@@ -525,5 +525,16 @@ Buffer 10.0 ms | Output 22.0 ms | Input 10.0 ms | Round-trip 32.0 ms | 0 xruns
 No `0xC0000409` (or any Application error) event was logged. The installed
 `misuc_app.exe` hash differs from E11 because the tag run is a separate build of
 the same source tree.
+
+### E13 — pull request
+
+```text
+PS> gh pr create -R SPOOKEYfr/Misuc --base windows-port \
+      --head sbdhpnt0607:fix/wasapi-iaudioclient-iid \
+      --title "fix(windows): correct IAudioClient IID and avoid startup abort" \
+      --body-file "$env:TEMP\misuc_pr_body.md"
+https://github.com/SPOOKEYfr/Misuc/pull/1
+```
+
 
 
