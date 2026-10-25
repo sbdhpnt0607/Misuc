@@ -17,6 +17,11 @@ endif()
 
 qt_standard_project_setup()
 
+# qt_standard_project_setup() enables AUTOMOC/AUTOUIC but not AUTORCC; without
+# this the external ui-qml/qml.qrc is linked as data and qrc:/qml/Main.qml is
+# missing at runtime (found by launching the CI build).
+set(CMAKE_AUTORCC ON)
+
 qt_add_executable(misuc_neu
   ${CMAKE_CURRENT_SOURCE_DIR}/../ui-qml/src/main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/../ui-qml/qml.qrc)
