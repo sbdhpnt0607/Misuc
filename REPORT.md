@@ -17,9 +17,9 @@
   non-recursive mutex. The resulting `std::system_error` is thrown inside a
   `noexcept` function, so the runtime calls `std::terminate()` → `abort()`.
 - **Fix:** correct the IID and release `streamMutex_` before calling `stop()` /
-  `setStreamError()` in both failure branches. A separate, test-only follow-up raises
-  the release smoke wait from 6 s to 15 s so a delayed startup failure cannot pass
-  unnoticed (see “CI smoke-test gap” below).
+  `setStreamError()` in both failure branches. A separate, test-only follow-up should
+  raise the release smoke wait from 6 s to 15 s so a delayed startup failure cannot
+  pass unnoticed (see “CI smoke-test gap” below).
 
 ## Reported symptom (Step 0)
 
@@ -140,12 +140,20 @@ failure path and the interface ID change.
 
 ## CI and installer verification
 
-- Branch build (`windows.yml`): `<pending>`
-- Throwaway tag `v0.3.1-dbg.1` (`release.yml`): `<pending>`
-- Installer downloaded from the tag run: `<pending>`
-- Silent install + 15 s launch check of the fixed build: `<pending>`
-- Negative test: fixed build with the IID re-broken should stay alive and report an
-  audio error instead of aborting: `<pending>`
+- Branch build (`windows.yml`): **pass** — 8m33s, build + tests; run
+  [40186662112](https://github.com/sbdhpnt0607/Misuc/actions/runs/40186662112)
+- Throwaway tag `v0.3.1-dbg.3` (`release.yml`): **pass** — Linux, Windows, and
+  publish jobs all green; run
+  [40187497191](https://github.com/sbdhpnt0607/Misuc/actions/runs/40187497191)
+- Installer downloaded from the tag run: **pass** —
+  `misuc-0.3.1-1-win64.exe`, 22,219,141 bytes,
+  SHA256 `79E518B42079E3B0D153E0D986C96A77505623090C23A050D4034172355DFA56`
+  (unsigned, as before)
+- Silent install + 15 s launch check of the fixed build: **pass** — uninstaller
+  exit 0, installer exit 0, shortcut target `C:\misuc_repro\misuc_app.exe`,
+  alive after 20 s, `Engine running on WASAPI`, 0 xruns (E12)
+- Negative test: **pass** — the fixed build with the IID re-broken stayed alive for
+  20 s and displayed `Start failed:`, with no abort (E7c)
 - Pull request: `<pending>`
 
 ## Follow-ups (not required for this fix)
@@ -363,6 +371,52 @@ Buffer 10.0 ms | Output 22.0 ms | Input 10.0 ms | Round-trip 32.0 ms | 0 xruns
 
 No code other than the IID bytes was changed for this check.
 
+### E7b — the same binary in the installed layout
+
+The patched executable was also copied over the clean install (original preserved)
+and launched through the actual desktop shortcut:
+
+```powershell
+PS> $sh = New-Object -ComObject WScript.Shell
+PS> $sh.CreateShortcut('C:\Users\Public\Desktop\Misuc.lnk').TargetPath
+C:\misuc_repro\misuc_app.exe
+
+PS> Copy-Item 'C:\misuc_repro\misuc_app.exe' 'C:\misuc_repro\misuc_app.exe.unpatched.bak'
+PS> Copy-Item 'C:\misuc_patched\misuc_app.exe' 'C:\misuc_repro\misuc_app.exe' -Force
+PS> (Get-FileHash 'C:\misuc_repro\misuc_app.exe' -Algorithm SHA256).Hash
+4A3F945754486504F742ADF0D069A44E979C5432B990AFA04DFF889688F8D059
+```
+
+```text
+window: Untitled - Misuc
+ALIVE after 15s
+
+Engine running on WASAPI.
+Buffer 10.0 ms | Output 22.0 ms | Input 10.0 ms | Round-trip 32.0 ms | 0 xruns
+48000 Hz / 2 out / 0 in / 480 frames
+```
+
+### E7c — negative test: fixed code with the original bad IID
+
+A copy of the CI-built binary was patched back to the original 16-byte IID (and
+nothing else), then launched:
+
+```powershell
+PS> # find and replace 4cadb91c...a703b2 with 4cadb91c...a7024c
+pattern at file offset 0x39B220
+patched to: 4cadb91cfadb324cb178c2f568a7024c
+
+PS> Start-Process .\misuc_app.exe -WorkingDirectory $negDir -PassThru
+NEGATIVE TEST: ALIVE after 20s (pid 3400)
+window: Untitled - Misuc
+Start failed:
+0 xruns
+```
+
+No `0xC0000409` event was written. The empty text after `Start failed:` is the
+pre-existing `status()` gating described under Follow-ups; the important result is
+that the failure is now reported instead of aborting the process.
+
 ### E8 — source diff
 
 ```diff
@@ -405,9 +459,71 @@ Sound devices: Realtek High Definition Audio (OK),
 The machine has working audio; the same default endpoint opened successfully in E6.
 No antivirus exclusion or SmartScreen bypass was used for any of the tests.
 
-### E10 — source commit under test
+### E10 — source commits under test
 
 ```text
-windows-port @ a0c3d09b80ac9df6589e3ba336fff2073f0978be
-docs: v0.3.1 release record - installer root cause, smoke verification, NOT-CLAIMED bounds
+base: upstream/windows-port @ a0c3d09b80ac9df6589e3ba336fff2073f0978be
+      docs: v0.3.1 release record - installer root cause, smoke verification, NOT-CLAIMED bounds
+
+fix branch at tag v0.3.1-dbg.3 @ a61af7afae0bb00cb0fe61f744e6ac73ba8b2346
+      b0a71a9 fix(windows): correct IAudioClient IID and avoid audio-init abort
 ```
+
+### E11 — CI-built binary before packaging
+
+The `misuc-windows` artifact from the green `windows.yml` run was extracted and
+launched directly:
+
+```powershell
+PS> gh run download 40186662112 -R sbdhpnt0607/Misuc -n misuc-windows -D $dest
+PS> (Get-FileHash "$dest\app\misuc_app.exe" -Algorithm SHA256).Hash
+1EC3EBFC84B259537AB514A4F7667C2732E2FC9156B2CDAADBD557AC926B4F0B
+
+PS> Start-Process "$dest\app\misuc_app.exe" -WorkingDirectory "$dest\app" -PassThru
+CI BUILD ALIVE after 20s (pid 16572)
+window: Untitled - Misuc
+Engine running on WASAPI.
+Buffer 10.0 ms | Output 22.0 ms | Input 10.0 ms | Round-trip 32.0 ms | 0 xruns
+48000 Hz / 2 out / 0 in / 480 frames
+```
+
+No Application error event was logged for this launch.
+
+### E12 — CI NSIS installer, uninstall + silent install, shortcut launch
+
+```powershell
+PS> gh run download 40187497191 -R sbdhpnt0607/Misuc -n release-windows -D $dest
+PS> Get-ChildItem $dest -File | Select-Object Name,Length
+misuc-0.3.1-1-win64.exe  22219141
+PS> (Get-FileHash $inst -Algorithm SHA256).Hash
+79E518B42079E3B0D153E0D986C96A77505623090C23A050D4034172355DFA56
+PS> (Get-AuthenticodeSignature $inst).Status
+NotSigned
+
+PS> Start-Process 'C:\misuc_repro\Uninstall Misuc.exe' -ArgumentList '/S','_?=C:\misuc_repro' -Wait
+uninstaller exit=0
+
+PS> Start-Process $inst -ArgumentList '/S','/D=C:\misuc_repro' -Wait -PassThru
+installer exit=0
+PS> (Get-FileHash 'C:\misuc_repro\misuc_app.exe' -Algorithm SHA256).Hash
+B1D1AC8A80D401FE50BF9D260609C89DA25892803B359517DE03899708806F04
+PS> (New-Object -ComObject WScript.Shell).CreateShortcut('C:\Users\Public\Desktop\Misuc.lnk').TargetPath
+C:\misuc_repro\misuc_app.exe
+```
+
+Launch through the public desktop shortcut:
+
+```text
+INSTALLED BUILD ALIVE after 20s (pid 11664)
+path: C:\misuc_repro\misuc_app.exe
+window: Untitled - Misuc
+Engine running on WASAPI.
+Buffer 10.0 ms | Output 22.0 ms | Input 10.0 ms | Round-trip 32.0 ms | 0 xruns
+48000 Hz / 2 out / 0 in / 480 frames
+```
+
+No `0xC0000409` (or any Application error) event was logged. The installed
+`misuc_app.exe` hash differs from E11 because the tag run is a separate build of
+the same source tree.
+
+
