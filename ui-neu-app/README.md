@@ -17,7 +17,10 @@ status message instead of failing the build. That keeps the Linux release image
 (`qt6-base-dev` only) working while the Windows Qt 6.8 build ships the preview.
 
 On Windows the target is a `WIN32_EXECUTABLE` (PE subsystem 2), so it starts
-without a console window. `windeployqt --qmldir ui-qml/qml` runs both:
+without a console window. A small `.rc` resource gives the executable Misuc's
+multi-size icon and version stamp, so Explorer, the taskbar and both shortcuts
+show the correct branding instead of Qt's generic icon (Arena's QML and
+`main.cpp` are not modified). `windeployqt --qmldir ui-qml/qml` runs both:
 
 - after the build, so `build/bin/Release` (and the CI ZIP) is self-contained;
 - after the CPack staging install, so the NSIS installer carries the Qt Quick

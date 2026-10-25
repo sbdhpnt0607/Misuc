@@ -49,6 +49,26 @@ get_filename_component(MISUC_NEU_QML_DIR "${MISUC_NEU_QML_DIR}" ABSOLUTE)
 
 if(WIN32)
   # ---------------------------------------------------------------------
+  # Shell identity (Explorer, taskbar, shortcuts) plus version information.
+  # Same multi-size .ico as misuc_app, compiled by rc.exe. This is
+  # integration glue; Arena's QML and main.cpp remain unchanged.
+  # ---------------------------------------------------------------------
+  set(MISUC_NEU_RC_ICON_PATH
+      "${CMAKE_CURRENT_SOURCE_DIR}/../assets/nsis/misuc.ico")
+  string(REPLACE "\\" "/" MISUC_NEU_RC_ICON_PATH
+         "${MISUC_NEU_RC_ICON_PATH}")
+  string(REPLACE "." ";" _misuc_neu_ver_list "${PROJECT_VERSION}")
+  list(GET _misuc_neu_ver_list 0 _misuc_neu_ver_major)
+  list(GET _misuc_neu_ver_list 1 _misuc_neu_ver_minor)
+  list(GET _misuc_neu_ver_list 2 _misuc_neu_ver_patch)
+  set(MISUC_NEU_RC_FILEVER_Q
+      "${_misuc_neu_ver_major},${_misuc_neu_ver_minor},${_misuc_neu_ver_patch},0")
+  set(MISUC_NEU_RC_FILEVER_S "${PROJECT_VERSION}.0")
+  configure_file(misuc_neu.rc.in misuc_neu.rc @ONLY)
+  target_sources(misuc_neu PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}/misuc_neu.rc)
+
+  # ---------------------------------------------------------------------
   # Windows runtime deployment. The release workflow deploys misuc_app,
   # and leaves misuc_neu to these rules so both installers and the plain
   # CI ZIP carry the Qt Quick DLLs + QML modules.

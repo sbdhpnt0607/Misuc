@@ -1,0 +1,32 @@
+// Windows shell identity for misuc_neu. This lives in the integration target,
+// not in Arena's ui-qml tree, so the UI sources stay untouched.
+//
+// The icon path must use FORWARD slashes: rc.exe interprets backslash escapes
+// inside quoted strings (a literal \a becomes BEL), which corrupts paths.
+1 ICON "@MISUC_NEU_RC_ICON_PATH@"
+
+1 VERSIONINFO
+FILEVERSION     @MISUC_NEU_RC_FILEVER_Q@
+PRODUCTVERSION  @MISUC_NEU_RC_FILEVER_Q@
+FILEOS          0x00040004L // VOS_NT_WINDOWS32
+FILETYPE        0x00000001L // VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904b0"
+    BEGIN
+      VALUE "CompanyName",      "Misuc"
+      VALUE "FileDescription",  "Misuc Neu - neumorphic QML preview"
+      VALUE "FileVersion",      "@MISUC_NEU_RC_FILEVER_S@"
+      VALUE "InternalName",     "misuc_neu"
+      VALUE "LegalCopyright",   "GPL-3.0-or-later"
+      VALUE "OriginalFilename", "misuc_neu.exe"
+      VALUE "ProductName",      "Misuc"
+      VALUE "ProductVersion",   "@MISUC_NEU_RC_FILEVER_S@"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04b0 // US-English + Unicode
+  END
+END
