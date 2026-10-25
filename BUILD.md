@@ -26,6 +26,7 @@ Options (all `ON` by default):
 | --------------------- | -------------------------------------- |
 | `MISUC_BUILD_TESTS`   | Build the `misuc_tests` unit tests.    |
 | `MISUC_BUILD_UI`      | Build the Qt app `misuc_app`.          |
+| `MISUC_BUILD_NEU`     | Build the QML preview `misuc_neu` when Qt Quick/Controls are available. |
 
 Example (engine + tests only):
 

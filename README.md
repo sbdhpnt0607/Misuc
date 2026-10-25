@@ -69,6 +69,23 @@ Prebuilt installers are attached to tagged GitHub Releases
 The Windows audio backend (WASAPI) has not been validated on real hardware
 yet — on Linux, Misuc talks to a running PipeWire daemon.
 
+## Misuc Neu (preview)
+
+`ui-qml/` holds **Misuc Neu**, a neumorphic Qt Quick shell designed by Arena AI.
+It is built as a second executable, `misuc_neu`, next to the classic Widgets
+app; on Windows the installer adds **Misuc Neu** Start Menu and Desktop
+shortcuts, while classic Misuc stays the default launch.
+
+The preview runs on Arena's demo `SongModel` — the transport and controls are
+visual and produce no audio. Wiring it to the engine (Session / Transport /
+mixer) is a separate step; see [`ui-neu-app/README.md`](ui-neu-app/README.md)
+for the build integration, the four minimal QML compile fixes, and the verified
+installer payload.
+
+Qt Quick is optional at configure time: `MISUC_BUILD_NEU` defaults to `ON` and
+the target is skipped automatically when Qt Quick/Controls are not installed,
+so a Qt-base-only Linux build is unaffected.
+
 ## Building
 
 Prerequisites (Debian / Ubuntu / Mint):
@@ -88,8 +105,8 @@ cmake --build build
 ./build/bin/misuc_app
 ```
 
-Options: `MISUC_BUILD_TESTS` and `MISUC_BUILD_UI` (both `ON` by default — see
-[`BUILD.md`](BUILD.md)).
+Options: `MISUC_BUILD_TESTS`, `MISUC_BUILD_UI` and `MISUC_BUILD_NEU` (all `ON`
+by default — see [`BUILD.md`](BUILD.md)).
 
 ### Tests
 
