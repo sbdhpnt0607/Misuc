@@ -76,7 +76,8 @@ Windows CI (`windows.yml`) builds the ZIP and the release workflow builds the
 NSIS installer. The installed package was checked on Windows:
 
 ```text
-misuc_neu.exe           61,952 bytes, PE subsystem 2 (WINDOWS_GUI)
+misuc_neu.exe           180,736 bytes, PE subsystem 2 (WINDOWS_GUI)
+icon                    Misuc multi-size .ico + 0.3.1 version resource
 installed title         Misuc - Neu Studio
 child processes         none (no conhost.exe)
 crash events            0
