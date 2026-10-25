@@ -18,6 +18,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(MISUC_BUILD_TESTS "Build unit tests" ON)
 option(MISUC_BUILD_UI   "Build the Qt user interface" ON)
+option(MISUC_BUILD_NEU  "Build the Misuc Neu QML interface" ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -71,6 +72,11 @@ endif()
 add_subdirectory(engine)
 
 if(MISUC_BUILD_UI)
+  # Defined before ui/ so its CPack rules can see whether misuc_neu exists and
+  # only then add the "Misuc Neu" shortcuts to the Windows installer.
+  if(MISUC_BUILD_NEU)
+    add_subdirectory(ui-neu-app)
+  endif()
   add_subdirectory(ui)
 endif()
 
