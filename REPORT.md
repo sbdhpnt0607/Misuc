@@ -1,13 +1,13 @@
-# Misuc 0.3.1 Windows crash — diagnosis and fix
+# Misuc 0.3.1 Windows — startup crash and console-window diagnosis and fixes
 
 ## Summary
 
-- **Symptom:** `misuc_app.exe` 0.3.1 starts, shows its splash/window, then exits with
+- **Symptom 1:** `misuc_app.exe` 0.3.1 starts, shows its splash/window, then exits with
   `0xC0000409` (`STATUS_STACK_BUFFER_OVERRUN`, actually a fail-fast abort from the CRT).
-- **Verdict:** this is a **code bug**, not SmartScreen, antivirus, permissions, or an
+- **Verdict 1:** this is a **code bug**, not SmartScreen, antivirus, permissions, or an
   audio-driver problem. The same WASAPI calls succeed from a separate process on the
   same machine when the correct interface ID is used.
-- **Trigger:** `WASAPIBackend::renderLoop()` calls
+- **Trigger 1:** `WASAPIBackend::renderLoop()` calls
   `IMMDevice::Activate(IID_IAudioClient, ...)` with a **transposed IID**: the shipped
   code uses `1CB9AD4C-DBFA-4C32-B178-C2F568A7024C`; the Windows SDK value is
   `1CB9AD4C-DBFA-4C32-B178-C2F568A703B2`. `Activate` returns `E_NOINTERFACE`
@@ -16,10 +16,23 @@
   `streamMutex_`: it calls `stop()` and then `setStreamError()`, which locks the same
   non-recursive mutex. The resulting `std::system_error` is thrown inside a
   `noexcept` function, so the runtime calls `std::terminate()` → `abort()`.
-- **Fix:** correct the IID and release `streamMutex_` before calling `stop()` /
+- **Fix 1:** correct the IID and release `streamMutex_` before calling `stop()` /
   `setStreamError()` in both failure branches. A separate, test-only follow-up should
   raise the release smoke wait from 6 s to 15 s so a delayed startup failure cannot
   pass unnoticed (see “CI smoke-test gap” below).
+- **Symptom 2:** launching the fixed app also opened an extra command-prompt window;
+  closing that window closed Misuc.
+- **Cause 2:** the UI target was created with plain `add_executable`, so
+  `misuc_app.exe` had PE subsystem **3 (`WINDOWS_CONSOLE`)**. Windows attached a
+  console; closing it terminated the attached process.
+- **Fix 2:** build the UI with `qt_add_executable(misuc_app WIN32 ...)`, producing PE
+  subsystem **2 (`WINDOWS_GUI`)**. The final build starts as a single clean Misuc
+  window with no console and no `conhost` child process.
+- **Final installer:** `v0.3.1-final.1`, published from the fixed commit
+  `aa1ae93`. `misuc-0.3.1-1-win64.exe`, 22,219,373 bytes, SHA256
+  `64F7E612809A1EF8C7FCFC28F830B2CD9CC43CA29094E9029AC82147E630F13C`
+  (unsigned, as before). Silent install, shortcut launch, no console, working
+  48 kHz WASAPI stream, and clean close verified (E16).
 
 ## Reported symptom (Step 0)
 
@@ -126,6 +139,37 @@ CI smoke-test gap (`.github/workflows/release.yml`, separate follow-up):
 No other behavior changes. A working stream still follows the same path; only the
 failure path and the interface ID change.
 
+## Second defect: the app was built as a console program
+
+After the audio fix, the app still opened an extra command-prompt window. Closing
+that window also closed Misuc. This was not a Windows setting or a shortcut
+problem; the executable itself was a console-subsystem binary.
+
+`ui/CMakeLists.txt` used:
+
+```cmake
+add_executable(misuc_app src/main.cpp)
+```
+
+CMake's `add_executable` does not select the Windows GUI subsystem unless `WIN32`
+is given. The resulting PE header had `Subsystem = 3 (WINDOWS_CONSOLE)`, so
+Windows created a console for the process. The console is the process's controlling
+console: closing it sends `CTRL_CLOSE_EVENT`, and the process exits with it.
+
+The fix is to let Qt create the platform-appropriate application target and pass
+the `WIN32` flag:
+
+```cmake
+# WIN32 builds a GUI-subsystem binary on Windows. A plain add_executable
+# produced a console window, and closing that console also terminated Misuc.
+qt_add_executable(misuc_app WIN32 src/main.cpp)
+```
+
+`qt_add_executable` links Qt's Windows entry point, so the existing `main()` is
+unchanged. The built executable now reports PE subsystem **2 (`WINDOWS_GUI`)**,
+creates no console, spawns no `conhost.exe` child, and closing Misuc does not
+affect any terminal window.
+
 ## Verification performed locally
 
 - The released 0.3.1 binary with **only the two IID bytes patched**
@@ -152,8 +196,28 @@ failure path and the interface ID change.
 - Silent install + 15 s launch check of the fixed build: **pass** — uninstaller
   exit 0, installer exit 0, shortcut target `C:\misuc_repro\misuc_app.exe`,
   alive after 20 s, `Engine running on WASAPI`, 0 xruns (E12)
-- Negative test: **pass** — the fixed build with the IID re-broken stayed alive for
+- Negative test: **pass** - the fixed build with the IID re-broken stayed alive for
   20 s and displayed `Start failed:`, with no abort (E7c)
+- Console fix branch build (`windows.yml`): **pass** - 7m56s, build + tests; run
+  [40204394533](https://github.com/sbdhpnt0607/Misuc/actions/runs/40204394533)
+- CI artifact from that run: **pass** - `misuc_app.exe` is PE subsystem 2
+  (`WINDOWS_GUI`), SHA256
+  `16246128FFB2B98D2FEB858D102FEAFB617D1AB96F9A1F7205054B23580AC6FD`;
+  installed to `C:\misuc_repro`, launched through the desktop shortcut, alive
+  after 20 s, no `conhost` child, Audio page `Engine running on WASAPI`, 0 xruns,
+  no crash event (E15)
+- Final release tag `v0.3.1-final.1` (`release.yml`): **pass** - Linux, Windows,
+  and publish jobs all green; Windows job 9m18s; run
+  [40205129654](https://github.com/sbdhpnt0607/Misuc/actions/runs/40205129654)
+- Final installer `misuc-0.3.1-1-win64.exe`, 22,219,373 bytes, SHA256
+  `64F7E612809A1EF8C7FCFC28F830B2CD9CC43CA29094E9029AC82147E630F13C`
+  (unsigned, as before). Silent uninstall + install to `C:\misuc_repro`:
+  uninstaller exit 0, installer exit 0; installed `misuc_app.exe` is PE
+  subsystem 2 (`WINDOWS_GUI`), SHA256
+  `67F1EE7396B2D246CA9605DCEDD23B0579302A29169786C703CDD4CF5AC495C8`;
+  shortcut target correct; alive after 20 s; no `conhost` child; Audio page
+  `Engine running on WASAPI`, `48000 Hz / 2 out / 0 in`, `0 xruns`; no crash
+  event; closing the window exited only Misuc (E16)
 - Pull request: [#1](https://github.com/SPOOKEYfr/Misuc/pull/1) (E13)
 
 ## Follow-ups (not required for this fix)
@@ -467,6 +531,11 @@ base: upstream/windows-port @ a0c3d09b80ac9df6589e3ba336fff2073f0978be
 
 fix branch at tag v0.3.1-dbg.3 @ a61af7afae0bb00cb0fe61f744e6ac73ba8b2346
       b0a71a9 fix(windows): correct IAudioClient IID and avoid audio-init abort
+
+console fix branch @ aa1ae93baac741c3ac397a1709dda73117ab1890
+      b0a71a9 fix(windows): correct IAudioClient IID and avoid audio-init abort
+      5331b97 fix(windows): build app as a GUI executable to remove console window
+      aa1ae93 fix(windows): set WIN32 on the app target to build a GUI subsystem binary
 ```
 
 ### E11 — CI-built binary before packaging
@@ -535,6 +604,142 @@ PS> gh pr create -R SPOOKEYfr/Misuc --base windows-port \
       --body-file "$env:TEMP\misuc_pr_body.md"
 https://github.com/SPOOKEYfr/Misuc/pull/1
 ```
+
+### E14 — console window: PE subsystem and no-console control test
+
+The installed audio-fixed build and the CI ZIP from the audio-fix run both had a
+console subsystem:
+
+```powershell
+PS> function Get-PeSubsystem($path) {
+      $fs = [IO.File]::OpenRead($path)
+      try {
+        $br = New-Object IO.BinaryReader($fs)
+        $fs.Position = 0x3C; $pe = $br.ReadInt32()
+        $fs.Position = $pe + 0x5C; $sub = $br.ReadUInt16()
+        switch ($sub) { 2 { 'WINDOWS_GUI' } 3 { 'WINDOWS_CONSOLE' } default { "UNKNOWN($sub)" } }
+      } finally { $fs.Dispose() }
+    }
+PS> Get-PeSubsystem 'C:\misuc_repro\misuc_app.exe'
+WINDOWS_CONSOLE
+PS> Get-PeSubsystem "$env:TEMP\misuc_ci_zip\app\misuc_app.exe"
+WINDOWS_CONSOLE
+```
+
+As a control, a copy of the installed build had only the PE subsystem field
+changed from 3 to 2 (no code change). It launched as one window with no console:
+
+```text
+before=3
+after=2
+GUI-PATCH TEST: ALIVE pid=11724 title='Untitled - Misuc'
+children: none (no conhost)
+```
+
+This isolated the subsystem field as the cause and confirmed that a GUI-subsystem
+binary does not create a console. The source fix then made that the real build
+setting instead of a post-build patch (E15).
+
+### E15 — console fix CI artifact and clean launch
+
+The `WIN32` source change (`aa1ae93`) was built by `windows.yml`; the run finished
+green in 7m56s:
+
+```powershell
+PS> gh run view 40204394533 -R sbdhpnt0607/Misuc `
+      --json headSha,conclusion --jq '{headSha,conclusion}'
+{"headSha":"aa1ae93baac741c3ac397a1709dda73117ab1890","conclusion":"success"}
+
+PS> gh run download 40204394533 -R sbdhpnt0607/Misuc -D $dest
+PS> Expand-Archive "$dest\misuc-windows\misuc-windows.zip" -DestinationPath $payload
+PS> Get-PeSubsystem "$payload\misuc_app.exe"
+WINDOWS_GUI
+PS> (Get-FileHash "$payload\misuc_app.exe" -Algorithm SHA256).Hash
+16246128FFB2B98D2FEB858D102FEAFB617D1AB96F9A1F7205054B23580AC6FD
+```
+
+The payload was copied over the installed layout and launched through the same
+desktop shortcut:
+
+```text
+APP ALIVE after 20s: pid=6436 title='Untitled - Misuc'
+path: C:\misuc_repro\misuc_app.exe
+children: none
+window: Untitled - Misuc
+Engine running on WASAPI.
+Buffer 10.0 ms | Output 22.0 ms | Input 10.0 ms | Round-trip 32.0 ms | 0 xruns
+48000 Hz / 2 out / 0 in / 480 frames
+0 xruns     20:47:57
+crash events since launch: 0
+```
+
+There is no `conhost.exe` child, so no console window is created. The process
+stays alive and the Audio page still reports a working 48 kHz WASAPI stream.
+Closing the window through `CloseMainWindow()` exited only Misuc; the PowerShell
+that ran the check stayed alive.
+
+```text
+CloseMainWindow returned: True
+app exited after close: True
+this PowerShell still alive: True
+```
+
+### E16 — final NSIS installer (`v0.3.1-final.1`)
+
+The final tag was pushed at the fixed commit and the release workflow built,
+tested, packaged, and published both platforms:
+
+```powershell
+PS> gh run view 40205129654 -R sbdhpnt0607/Misuc `
+      --json headSha,conclusion,jobs --jq '{headSha,conclusion,jobs:[.jobs[]|{name,conclusion}]}'
+{"headSha":"aa1ae93baac741c3ac397a1709dda73117ab1890","conclusion":"success",
+ "jobs":[{"name":"linux","conclusion":"success"},
+         {"name":"windows","conclusion":"success"},
+         {"name":"publish","conclusion":"success"}]}
+
+PS> gh release download v0.3.1-final.1 -R sbdhpnt0607/Misuc `
+      -D $dest --pattern '*win64.exe'
+PS> Get-Item "$dest\misuc-0.3.1-1-win64.exe" | Select-Object Name,Length
+Name                      Length
+----                      ------
+misuc-0.3.1-1-win64.exe 22219373
+PS> (Get-FileHash "$dest\misuc-0.3.1-1-win64.exe" -Algorithm SHA256).Hash
+64F7E612809A1EF8C7FCFC28F830B2CD9CC43CA29094E9029AC82147E630F13C
+PS> (Get-AuthenticodeSignature "$dest\misuc-0.3.1-1-win64.exe").Status
+NotSigned
+```
+
+Silent uninstall of the previous copy, silent install of the final installer,
+then launch through the public desktop shortcut:
+
+```text
+installer sha256: 64F7E612809A1EF8C7FCFC28F830B2CD9CC43CA29094E9029AC82147E630F13C
+installer signature: NotSigned
+uninstaller exit=0
+installer exit=0
+installed exe: C:\misuc_repro\misuc_app.exe
+sha256: 67F1EE7396B2D246CA9605DCEDD23B0579302A29169786C703CDD4CF5AC495C8
+PE subsystem: 2 (WINDOWS_GUI)
+shortcut: C:\Users\Public\Desktop\Misuc.lnk -> C:\misuc_repro\misuc_app.exe
+APP ALIVE after 20s: pid=12444 title='Untitled - Misuc'
+children: none
+window: Untitled - Misuc
+Engine running on WASAPI.
+Buffer 10.0 ms | Output 22.0 ms | Input 10.0 ms | Round-trip 32.0 ms | 0 xruns
+48000 Hz / 2 out / 0 in / 480 frames
+0 xruns     20:58:58
+crash events since launch: 0
+CloseMainWindow returned: True
+app exited after close: True
+verification shell still alive: True
+```
+
+There is no console window and no `conhost.exe` child. Closing Misuc exits only
+Misuc. The Audio page reports a live 48 kHz WASAPI stream with zero xruns, and no
+Application error event was logged.
+
+Release page:
+[v0.3.1-final.1](https://github.com/sbdhpnt0607/Misuc/releases/tag/v0.3.1-final.1).
 
 
 
