@@ -1,0 +1,11 @@
+module Components
+NeuSurface 1.0 NeuSurface.qml
+NeuButton 1.0 NeuButton.qml
+NeuIconButton 1.0 NeuIconButton.qml
+NeuSegmented 1.0 NeuSegmented.qml
+NeuLed 1.0 NeuLed.qml
+NeuKnob 1.0 NeuKnob.qml
+NeuFader 1.0 NeuFader.qml
+NeuMeter 1.0 NeuMeter.qml
+NeuStepCell 1.0 NeuStepCell.qml
+NeuField 1.0 NeuField.qml
