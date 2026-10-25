@@ -63,10 +63,9 @@ target_include_directories(misuc_ui_objs PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(misuc_ui_objs PRIVATE misuc_engine Qt6::Widgets)
 
-# qt_add_executable builds a GUI-subsystem binary on Windows. A plain
-# add_executable produced a console window, and closing that console also
-# terminated Misuc.
-qt_add_executable(misuc_app src/main.cpp)
+# WIN32 builds a GUI-subsystem binary on Windows. A plain add_executable
+# produced a console window, and closing that console also terminated Misuc.
+qt_add_executable(misuc_app WIN32 src/main.cpp)
 target_link_libraries(misuc_app PRIVATE
   misuc_ui_objs
   misuc_engine
