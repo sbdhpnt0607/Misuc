@@ -83,7 +83,7 @@ Item {
 
                         Repeater {
                             model: SongModel.channels
-                            delegate: ChannelRow { channel: modelData }
+                            delegate: ChannelRow {}
                         }
                     }
                 }
@@ -95,7 +95,8 @@ Item {
     // cleanly (a Repeater-of-Repeater cannot otherwise see the outer model).
     component ChannelRow: NeuSurface {
         id: rowRoot
-        required property var channel
+        required property var modelData
+        property var channel: modelData
         readonly property var steps: SongModel.activePatternObj().steps[channel.id] || []
 
         width: rackCol.width

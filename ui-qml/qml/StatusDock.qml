@@ -41,7 +41,7 @@ NeuSurface {
             Layout.fillWidth: true
             text: root.hints[Math.min(root.workspace, root.hints.length - 1)]
             color: Theme.textDim
-            font.pixelSize: 11.5
+            font.pixelSize: 12
             elide: Text.ElideRight
         }
 

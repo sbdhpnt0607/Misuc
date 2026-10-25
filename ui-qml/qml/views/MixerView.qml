@@ -51,7 +51,7 @@ Item {
 
                         Repeater {
                             model: SongModel.channels
-                            delegate: ChannelStrip { channel: modelData }
+                            delegate: ChannelStrip {}
                         }
                         MasterStrip {}
                     }
@@ -62,7 +62,8 @@ Item {
 
     component ChannelStrip: NeuSurface {
         id: strip
-        required property var channel
+        required property var modelData
+        property var channel: modelData
         width: 84
         height: parent ? parent.height : 300
         surfRadius: Theme.radiusMd

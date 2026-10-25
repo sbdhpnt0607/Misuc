@@ -64,7 +64,7 @@ NeuSurface {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.label
                             color: parent.parent.active ? Theme.accent : Theme.textDim
-                            font.pixelSize: 8.5
+                            font.pixelSize: 8
                             font.weight: Font.Bold
                             font.letterSpacing: 0.6
                         }
