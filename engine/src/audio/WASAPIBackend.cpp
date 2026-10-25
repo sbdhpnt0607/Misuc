@@ -28,7 +28,8 @@ const CLSID kMMDeviceEnumeratorClsid = {
 const IID kIMMDeviceEnumeratorIid = {
     0xA95664D2, 0x9614, 0x4F35, {0xA7, 0x46, 0xDE, 0x8D, 0xB6, 0x36, 0x17, 0xE6}};
 const IID kIAudioClientIid = {
-    0x1CB9AD4C, 0xDBFA, 0x4C32, {0xB1, 0x78, 0xC2, 0xF5, 0x68, 0xA7, 0x02, 0x4C}};
+    // {1CB9AD4C-DBFA-4C32-B178-C2F568A703B2}
+    0x1CB9AD4C, 0xDBFA, 0x4C32, {0xB1, 0x78, 0xC2, 0xF5, 0x68, 0xA7, 0x03, 0xB2}};
 const IID kIAudioRenderClientIid = {
     0xF294ACFC, 0x3146, 0x4483, {0xA7, 0xBF, 0xAD, 0xDC, 0xA7, 0xC2, 0x60, 0xE2}};
 const IID kIAudioCaptureClientIid = {
@@ -347,12 +348,15 @@ bool WASAPIBackend::start(AudioRenderer& renderer) {
         lk, std::chrono::milliseconds(8000),
         [&] { return stateReachedOut_.load(); });
     if (!ready) {
+      // stop() joins the render thread, which may need this mutex to notify.
+      lk.unlock();
       stop();
       setStreamError("Timed out connecting the output device.");
       return false;
     }
     if (outState_.load() == -1) {
-      const std::string err = streamError_; // we already hold the lock
+      const std::string err = streamError_; // copy while holding the lock
+      lk.unlock();
       stop();
       setStreamError(err);
       return false;
@@ -365,12 +369,14 @@ bool WASAPIBackend::start(AudioRenderer& renderer) {
         lk, std::chrono::milliseconds(8000),
         [&] { return stateReachedIn_.load(); });
     if (!ready) {
+      lk.unlock();
       stop();
       setStreamError("Timed out connecting the input device.");
       return false;
     }
     if (inState_.load() == -1) {
-      const std::string err = streamError_; // we already hold the lock
+      const std::string err = streamError_; // copy while holding the lock
+      lk.unlock();
       stop();
       setStreamError(err);
       return false;
